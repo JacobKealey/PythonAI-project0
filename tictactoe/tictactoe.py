@@ -29,7 +29,7 @@ def player(board):
         for cell in row:
             if cell == X:
                 nbrOfX += 1
-            elif cell == 0:
+            elif cell == O:
                 nbrOfO += 1
     if nbrOfX > nbrOfO:
         return O
@@ -42,10 +42,14 @@ def actions(board):
     Returns set of all possible actions (i, j) available on the board.
     """
     actionSet = set()
-    for row in range(board):
-        for cell in range(row):
-            if board[row][cell] == EMPTY:
-                actionSet.add((row, cell))
+    i = 0
+    for row in board:
+        j = 0
+        for cell in row:
+            if cell == EMPTY:
+                actionSet.add((i, j))
+            j += 1
+        i += 1
     return actionSet
 
 
@@ -65,18 +69,20 @@ def winner(board):
     Returns the winner of the game, if there is one.
     """
     threeInARow = []
-    for row in range(board):
-        for col in range(row):
-            threeInARow.append(board[row][col])
+    for i in range(3):
+        for j in range(3):
+            threeInARow.append(board[i][j])
         if is_three_in_a_row(threeInARow):
             return threeInARow[0]
+        threeInARow.clear()
 
     threeInARow = []
-    for col in range(board):
-        for row in range(col):
-            threeInARow.append(board[row][col])
+    for i in range(3):
+        for j in range(3):
+            threeInARow.append(board[j][i])
         if is_three_in_a_row(threeInARow):
             return threeInARow[0]
+        threeInARow.clear()
 
     firstDiagonal = [board[0][0], board[1][1], board[2][2]]
     if is_three_in_a_row(firstDiagonal):
@@ -102,8 +108,8 @@ def terminal(board):
     if winner(board) is not None:
         return True
 
-    for row in range(board):
-        for cell in range(row):
+    for row in board:
+        for cell in row:
             if cell == EMPTY:
                 return False
     return True
@@ -126,5 +132,53 @@ def utility(board):
 def minimax(board):
     """
     Returns the optimal action for the current player on the board.
+    if X -> max, if O -> min
     """
-    raise NotImplementedError
+    action = BestAction
+    if player(board) == X:
+        action = maximum(board).action
+    elif player(board) == O:
+        action = minimum(board).action
+
+    return action
+
+
+def minimum(board):
+    best = BestAction
+
+    if terminal(board):
+        best.action = actions(board)
+        best.value = utility(board)
+        return best
+
+    v = 1
+    for action in actions(board):
+        temp = maximum(result(board, action))
+        if temp.value < v:
+            best.action = action
+            best.value = temp.value
+
+    return best
+
+
+def maximum(board):
+    best = BestAction
+
+    if terminal(board):
+        best.action = actions(board)
+        best.value = utility(board)
+        return best
+
+    v = -1
+    for action in actions(board):
+        temp = minimum(result(board, action))
+        if temp.value > v:
+            best.action = action
+            best.value = temp.value
+
+    return best
+
+class BestAction:
+    def __init__(self):
+        self.action = None
+        self.value = None
