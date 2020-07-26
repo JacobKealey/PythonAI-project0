@@ -57,6 +57,8 @@ def result(board, action):
     """
     Returns the board that results from making move (i, j) on the board.
     """
+    if action is None:
+        raise RuntimeError('No action')
     if board[action[0]][action[1]] != EMPTY:
         raise RuntimeError('Trying to make a move on a non-empty cell')
     newBoard = copy.deepcopy(board)
@@ -134,51 +136,49 @@ def minimax(board):
     Returns the optimal action for the current player on the board.
     if X -> max, if O -> min
     """
-    action = BestAction
+    best = BestAction
     if player(board) == X:
-        action = maximum(board).action
+        best = maximum(board)
     elif player(board) == O:
-        action = minimum(board).action
+        best = minimum(board)
 
-    return action
+    return best.action
 
 
 def minimum(board):
-    best = BestAction
+    best = BestAction(None, 2)
 
     if terminal(board):
-        best.action = actions(board)
+        best.action = None
         best.value = utility(board)
         return best
 
-    v = 1
     for action in actions(board):
-        temp = maximum(result(board, action))
-        if temp.value < v:
+        v = maximum(result(board, action)).value
+        if v < best.value:
             best.action = action
-            best.value = temp.value
+            best.value = v
 
     return best
 
 
 def maximum(board):
-    best = BestAction
+    best = BestAction(None, -2)
 
     if terminal(board):
-        best.action = actions(board)
+        best.action = None
         best.value = utility(board)
         return best
 
-    v = -1
     for action in actions(board):
-        temp = minimum(result(board, action))
-        if temp.value > v:
+        v = minimum(result(board, action)).value
+        if v > best.value:
             best.action = action
-            best.value = temp.value
+            best.value = v
 
     return best
 
 class BestAction:
-    def __init__(self):
-        self.action = None
-        self.value = None
+    def __init__(self, action, value):
+        self.action = action
+        self.value = value
